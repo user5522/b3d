@@ -56,7 +56,7 @@ pub fn food_consumed(
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let (player_transform, mut player) = player.single_mut();
+    let (player_transform, _player) = player.single_mut();
 
     for (food_entity, food_transform) in food.iter_mut() {
         let distance = player_transform
