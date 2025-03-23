@@ -9,14 +9,14 @@ pub fn spawn_player(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let player_mesh = meshes.add(Cuboid::default());
+    let player_mesh = meshes.add(Cuboid::from_size(PLAYER_PROPORTIONS));
     let player_material = materials.add(StandardMaterial {
         base_color: PLAYER_COLOR,
         ..default()
     });
 
     commands.spawn((
-        Transform::from_xyz(0.0, 0.5, 0.0),
+        Transform::from_xyz(0.0, PLAYER_PROPORTIONS.y / 2.0, 0.0),
         GlobalTransform::default(),
         Mesh3d(player_mesh),
         MeshMaterial3d(player_material),
