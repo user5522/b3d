@@ -24,11 +24,11 @@ pub fn setup_camera(mut commands: Commands, mut windows: Query<&mut Window>) {
 
 pub fn follow_player(
     mut camera: Query<(&mut Transform, &mut FpCamera), With<MainCamera>>,
-    player: Query<&Transform, (With<Player>, Without<MainCamera>)>,
+    mut player: Query<&mut Transform, (With<Player>, Without<MainCamera>)>,
     mut mouse_motion: EventReader<MouseMotion>,
 ) {
-    if let Ok(player_transform) = player.get_single() {
-        if let Ok((mut camera_transform, mut camera)) = camera.get_single_mut() {
+    if let Ok((mut camera_transform, mut camera)) = camera.get_single_mut() {
+        if let Ok(mut player_transform) = player.get_single_mut() {
             let sensitivity = 0.005;
 
             for event in mouse_motion.read() {
@@ -38,7 +38,9 @@ pub fn follow_player(
 
             camera.pitch = camera.pitch.clamp(-1.5, 1.5);
 
-            camera_transform.translation = player_transform.translation + Vec3::new(0.0, 0.5, 0.0);
+            camera_transform.translation = player_transform.translation;
+
+            player_transform.rotation = Quat::from_rotation_y(camera.yaw);
 
             camera_transform.rotation =
                 Quat::from_rotation_y(camera.yaw) * Quat::from_rotation_x(camera.pitch);
