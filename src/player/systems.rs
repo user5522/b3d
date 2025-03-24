@@ -32,17 +32,21 @@ pub fn spawn_player(
         LockedAxes::ROTATION_LOCKED,
         Sleeping::disabled(),
         Velocity::zero(),
-        Player { grounded: false },
+        Player {
+            grounded: false,
+            sliding: false,
+            slide_direction: Vec3::ZERO,
+        },
     ));
 }
 
 pub fn player_movement(
-    mut player: Query<&mut Transform, With<Player>>,
+    mut player: Query<(&mut Transform, &Player)>,
     camera: Query<&Transform, (With<MainCamera>, Without<Player>)>,
     input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
-    let mut player_transform = player.single_mut();
+    let (mut player_transform, player) = player.single_mut();
     let camera_transform = camera.single();
 
     let camera_forward = camera_transform.forward().normalize();
@@ -52,18 +56,20 @@ pub fn player_movement(
 
     let mut direction = Vec3::ZERO;
 
-    if input.pressed(KeyCode::ArrowUp) || input.pressed(KeyCode::KeyW) {
-        direction += camera_forward_xz;
-    }
-    if input.pressed(KeyCode::ArrowDown) || input.pressed(KeyCode::KeyS) {
-        direction -= camera_forward_xz;
-    }
+    if !player.sliding {
+        if input.pressed(KeyCode::ArrowUp) || input.pressed(KeyCode::KeyW) {
+            direction += camera_forward_xz;
+        }
+        if input.pressed(KeyCode::ArrowDown) || input.pressed(KeyCode::KeyS) {
+            direction -= camera_forward_xz;
+        }
 
-    if input.pressed(KeyCode::ArrowLeft) || input.pressed(KeyCode::KeyA) {
-        direction -= camera_right_xz;
-    }
-    if input.pressed(KeyCode::ArrowRight) || input.pressed(KeyCode::KeyD) {
-        direction += camera_right_xz;
+        if input.pressed(KeyCode::ArrowLeft) || input.pressed(KeyCode::KeyA) {
+            direction -= camera_right_xz;
+        }
+        if input.pressed(KeyCode::ArrowRight) || input.pressed(KeyCode::KeyD) {
+            direction += camera_right_xz;
+        }
     }
 
     let speed = if input.pressed(KeyCode::ShiftLeft) {
@@ -75,25 +81,6 @@ pub fn player_movement(
     let direction = direction.normalize_or_zero() * speed;
 
     player_transform.translation += time.delta_secs() * 2.0 * direction;
-}
-
-pub fn ground_check(
-    mut collision_events: EventReader<CollisionEvent>,
-    mut player_query: Query<&mut Player>,
-    sensor_query: Query<Entity, With<GroundSensor>>,
-) {
-    for event in collision_events.read() {
-        let (is_collision_start, e1, e2) = match event {
-            CollisionEvent::Started(e1, e2, _) => (true, e1, e2),
-            CollisionEvent::Stopped(e1, e2, _) => (false, e1, e2),
-        };
-
-        if sensor_query.get(*e1).is_ok() || sensor_query.get(*e2).is_ok() {
-            if let Ok(mut player) = player_query.get_single_mut() {
-                player.grounded = is_collision_start;
-            }
-        }
-    }
 }
 
 pub fn player_jump(
@@ -113,6 +100,74 @@ pub fn player_jump(
 
         if velocity.linvel.y < MAX_FALL_SPEED {
             velocity.linvel.y = MAX_FALL_SPEED;
+        }
+    }
+}
+
+pub fn player_slide(
+    mut player_query: Query<(&mut Player, &mut Transform, &mut Velocity)>,
+    camera_query: Query<&Transform, (With<MainCamera>, Without<Player>)>,
+    input: Res<ButtonInput<KeyCode>>,
+    time: Res<Time>,
+) {
+    let (mut player, mut player_transform, mut velocity) = player_query.single_mut();
+    let camera_transform = camera_query.single();
+
+    if input.pressed(KeyCode::ControlLeft) && player.grounded && !player.sliding {
+        player.sliding = true;
+        player.slide_direction = Vec3::new(
+            camera_transform.forward().x,
+            0.0,
+            camera_transform.forward().z,
+        )
+        .normalize_or_zero();
+    }
+
+    if player.sliding {
+        let rotation_amount = if input.pressed(KeyCode::ArrowLeft) || input.pressed(KeyCode::KeyA) {
+            0.1 * time.delta_secs()
+        } else if input.pressed(KeyCode::ArrowRight) || input.pressed(KeyCode::KeyD) {
+            -0.1 * time.delta_secs()
+        } else {
+            0.0
+        };
+
+        let rotation = Quat::from_rotation_y(rotation_amount);
+
+        player.slide_direction = rotation
+            .mul_vec3(player.slide_direction)
+            .normalize_or_zero();
+
+        velocity.linvel = PLAYER_SLIDE_FORCE * player.slide_direction;
+
+        let target_rotation =
+            Quat::from_rotation_arc(player_transform.forward().as_vec3(), player.slide_direction);
+        player_transform.rotation = player_transform
+            .rotation
+            .slerp(target_rotation, time.delta_secs() * 10.0);
+    }
+
+    if (input.just_released(KeyCode::ControlLeft) || !player.grounded) && player.sliding {
+        player.sliding = false;
+        velocity.linvel = Vec3::ZERO;
+    }
+}
+
+pub fn ground_check(
+    mut collision_events: EventReader<CollisionEvent>,
+    mut player_query: Query<&mut Player>,
+    sensor_query: Query<Entity, With<GroundSensor>>,
+) {
+    for event in collision_events.read() {
+        let (is_collision_start, e1, e2) = match event {
+            CollisionEvent::Started(e1, e2, _) => (true, e1, e2),
+            CollisionEvent::Stopped(e1, e2, _) => (false, e1, e2),
+        };
+
+        if sensor_query.get(*e1).is_ok() || sensor_query.get(*e2).is_ok() {
+            if let Ok(mut player) = player_query.get_single_mut() {
+                player.grounded = is_collision_start;
+            }
         }
     }
 }
