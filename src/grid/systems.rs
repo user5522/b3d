@@ -3,6 +3,7 @@ use bevy::{
     prelude::*,
     render::mesh::{Indices, PrimitiveTopology},
 };
+use bevy_rapier3d::prelude::*;
 
 use super::*;
 
@@ -31,6 +32,8 @@ pub fn setup_grid(
             ..default()
         })),
         Transform::from_xyz(0.0, 0.0, 0.0),
+        RigidBody::Fixed,
+        Collider::halfspace(Vec3::Y).unwrap(),
     ));
 }
 

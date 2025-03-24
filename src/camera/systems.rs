@@ -1,6 +1,6 @@
 use bevy::{input::mouse::MouseMotion, prelude::*, window::CursorGrabMode};
 
-use crate::player::components::Player;
+use crate::player::{PLAYER_MESH_LENGTH, components::Player};
 
 use super::components::*;
 
@@ -38,7 +38,8 @@ pub fn follow_player(
 
             camera.pitch = camera.pitch.clamp(-1.5, 1.5);
 
-            camera_transform.translation = player_transform.translation;
+            camera_transform.translation =
+                player_transform.translation + Vec3::new(0., PLAYER_MESH_LENGTH * 0.5, 0.);
 
             player_transform.rotation = Quat::from_rotation_y(camera.yaw);
 

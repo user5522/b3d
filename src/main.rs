@@ -6,6 +6,7 @@ mod systems;
 
 use bevy::{prelude::*, window::WindowMode};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_rapier3d::prelude::*;
 
 use camera::CameraPlugin;
 use food::FoodPlugin;
@@ -26,7 +27,10 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugins(WorldInspectorPlugin::default())
+        .add_plugins((
+            RapierPhysicsPlugin::<NoUserData>::default(),
+            WorldInspectorPlugin::default(),
+        ))
         .add_plugins((PlayerPlugin, CameraPlugin, GridPlugin, FoodPlugin))
         .add_systems(Update, toggle_fullscreen)
         .run();
