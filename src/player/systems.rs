@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use super::{components::*, *};
-use crate::camera::components::MainCamera;
+use crate::camera::components::*;
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -195,6 +195,17 @@ pub fn update_player_height(
             );
 
             transform.translation.y = original_feet_pos + player.current_height / 2.0;
+        }
+    }
+}
+
+pub fn player_ground_slam(
+    input: Res<ButtonInput<KeyCode>>,
+    mut player_query: Query<(&mut Velocity, &Player)>,
+) {
+    if let Ok((mut velocity, player)) = player_query.get_single_mut() {
+        if input.just_pressed(KeyCode::ControlLeft) && !player.grounded {
+            velocity.linvel.y = PLAYER_GROUND_SLAM_FORCE;
         }
     }
 }

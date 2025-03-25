@@ -13,6 +13,7 @@ pub const PLAYER_WALK_SPEED: f32 = 4.;
 pub const PLAYER_SPRINT_SPEED: f32 = 8.;
 pub const PLAYER_JUMP_FORCE: f32 = 5.;
 pub const PLAYER_SLIDE_FORCE: f32 = 15.;
+pub const PLAYER_GROUND_SLAM_FORCE: f32 = -50.0;
 
 pub const AIR_FRICTION: f32 = 0.75;
 const GRAVITY_MULTIPLIER: f32 = 1.25;
@@ -31,6 +32,7 @@ impl Plugin for PlayerPlugin {
                 player_jump,
                 player_slide,
                 update_player_height,
+                player_ground_slam,
             ),
         );
     }
