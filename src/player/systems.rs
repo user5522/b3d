@@ -36,6 +36,8 @@ pub fn spawn_player(
             grounded: false,
             sliding: false,
             slide_direction: Vec3::ZERO,
+            current_height: PLAYER_MESH_LENGTH,
+            target_height: PLAYER_MESH_LENGTH,
         },
     ));
 }
@@ -121,6 +123,7 @@ pub fn player_slide(
             camera_transform.forward().z,
         )
         .normalize_or_zero();
+        player.target_height = PLAYER_MESH_LENGTH / 2.0;
     }
 
     if player.sliding {
@@ -149,6 +152,7 @@ pub fn player_slide(
 
     if (input.just_released(KeyCode::ControlLeft) || !player.grounded) && player.sliding {
         player.sliding = false;
+        player.target_height = PLAYER_MESH_LENGTH;
         velocity.linvel = Vec3::ZERO;
     }
 }
@@ -168,6 +172,29 @@ pub fn ground_check(
             if let Ok(mut player) = player_query.get_single_mut() {
                 player.grounded = is_collision_start;
             }
+        }
+    }
+}
+
+pub fn update_player_height(
+    mut player_query: Query<(&mut Player, &mut Collider, &mut Transform)>,
+    time: Res<Time>,
+) {
+    if let Ok((mut player, mut collider, mut transform)) = player_query.get_single_mut() {
+        if player.current_height != player.target_height {
+            let original_feet_pos = transform.translation.y - player.current_height / 2.0;
+
+            player.current_height = player
+                .current_height
+                .lerp(player.target_height, time.delta_secs() * 50.0);
+
+            *collider = Collider::capsule(
+                Vec3::Y * player.current_height / 2.0,
+                Vec3::NEG_Y * player.current_height / 2.0,
+                PLAYER_MESH_RADIUS,
+            );
+
+            transform.translation.y = original_feet_pos + player.current_height / 2.0;
         }
     }
 }
