@@ -48,20 +48,3 @@ pub fn follow_player(
         }
     }
 }
-
-pub fn toggle_cursor_lock(keys: Res<ButtonInput<KeyCode>>, mut windows: Query<&mut Window>) {
-    if keys.just_pressed(KeyCode::Escape) {
-        if let Ok(mut window) = windows.get_single_mut() {
-            match window.cursor_options.grab_mode {
-                CursorGrabMode::Locked => {
-                    window.cursor_options.grab_mode = CursorGrabMode::None;
-                    window.cursor_options.visible = true;
-                }
-                _ => {
-                    window.cursor_options.grab_mode = CursorGrabMode::Locked;
-                    window.cursor_options.visible = false;
-                }
-            }
-        }
-    }
-}

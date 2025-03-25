@@ -32,6 +32,6 @@ fn main() {
             WorldInspectorPlugin::default(),
         ))
         .add_plugins((PlayerPlugin, CameraPlugin, GridPlugin, FoodPlugin))
-        .add_systems(Update, toggle_fullscreen)
+        .add_systems(Update, (toggle_fullscreen, toggle_cursor_lock))
         .run();
 }

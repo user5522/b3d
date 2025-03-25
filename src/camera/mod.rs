@@ -10,6 +10,6 @@ pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup_camera)
-            .add_systems(Update, (follow_player, toggle_cursor_lock));
+            .add_systems(Update, follow_player);
     }
 }
