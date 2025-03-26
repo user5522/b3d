@@ -1,8 +1,9 @@
 use bevy::{input::mouse::MouseMotion, prelude::*, window::CursorGrabMode};
+use rand::Rng;
 
 use crate::player::components::Player;
 
-use super::components::*;
+use super::{CAMERA_DECAY_RATE, TRAUMA_DECAY_SPEED, components::*, resources::ScreenShake};
 
 pub fn setup_camera(mut commands: Commands, mut windows: Query<&mut Window>) {
     if let Ok(mut window) = windows.get_single_mut() {
@@ -12,12 +13,13 @@ pub fn setup_camera(mut commands: Commands, mut windows: Query<&mut Window>) {
 
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(0.0, 0.0, 0.0),
+        Transform::from_xyz(-10.0, 10.0, 10.0),
         GlobalTransform::default(),
         MainCamera,
         FpCamera {
             pitch: 0.0,
             yaw: 0.0,
+            base_rotation: Quat::IDENTITY,
         },
     ));
 }
@@ -43,8 +45,41 @@ pub fn follow_player(
 
             player_transform.rotation = Quat::from_rotation_y(camera.yaw);
 
-            camera_transform.rotation =
+            camera.base_rotation =
                 Quat::from_rotation_y(camera.yaw) * Quat::from_rotation_x(camera.pitch);
         }
     }
+}
+
+pub fn screen_shake(
+    time: Res<Time>,
+    mut screen_shake: ResMut<ScreenShake>,
+    mut query: Query<(&mut Transform, &FpCamera), With<MainCamera>>,
+) {
+    let mut rng = rand::rng();
+    let shake = screen_shake.trauma * screen_shake.trauma;
+
+    let yaw = (screen_shake.max_yaw * shake).to_radians() * rng.random_range(-1.0..1.0);
+    let roll = (screen_shake.max_roll * shake).to_radians() * rng.random_range(-1.0..1.0);
+    let pitch = (screen_shake.max_pitch * shake).to_radians() * rng.random_range(-1.0..1.0);
+
+    if shake > 0.0 && screen_shake.duration > 0.0 {
+        if let Ok((mut transform, camera)) = query.get_single_mut() {
+            let rotation = Quat::from_rotation_z(roll)
+                * Quat::from_rotation_x(pitch)
+                * Quat::from_rotation_y(yaw);
+            let base_rotation = camera.base_rotation;
+            transform.rotation =
+                base_rotation.lerp(base_rotation.mul_quat(rotation), CAMERA_DECAY_RATE);
+
+            screen_shake.duration -= time.delta_secs();
+        }
+    } else {
+        if let Ok((mut transform, camera)) = query.get_single_mut() {
+            transform.rotation = transform.rotation.lerp(camera.base_rotation, 1.);
+        }
+    }
+
+    screen_shake.trauma -= TRAUMA_DECAY_SPEED * time.delta_secs();
+    screen_shake.trauma = screen_shake.trauma.clamp(0.0, 1.0);
 }

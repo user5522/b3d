@@ -7,4 +7,5 @@ pub struct MainCamera;
 pub struct FpCamera {
     pub pitch: f32,
     pub yaw: f32,
+    pub base_rotation: Quat,
 }
