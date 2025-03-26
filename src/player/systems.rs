@@ -2,7 +2,9 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use super::{components::*, *};
-use crate::camera::components::*;
+use crate::camera::{
+    MAX_OFFSET, MAX_PITCH, MAX_ROLL, MAX_YAW, components::*, resources::ScreenShake,
+};
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -35,6 +37,7 @@ pub fn spawn_player(
         Player {
             grounded: false,
             sliding: false,
+            slamming: false,
             slide_direction: Vec3::ZERO,
             current_height: PLAYER_MESH_LENGTH,
             target_height: PLAYER_MESH_LENGTH,
@@ -115,7 +118,8 @@ pub fn player_slide(
     let (mut player, mut player_transform, mut velocity) = player_query.single_mut();
     let camera_transform = camera_query.single();
 
-    if input.pressed(KeyCode::ControlLeft) && player.grounded && !player.sliding {
+    if input.pressed(KeyCode::ControlLeft) && player.grounded && !player.sliding && !player.slamming
+    {
         player.sliding = true;
         player.slide_direction = Vec3::new(
             camera_transform.forward().x,
@@ -201,11 +205,35 @@ pub fn update_player_height(
 
 pub fn player_ground_slam(
     input: Res<ButtonInput<KeyCode>>,
-    mut player_query: Query<(&mut Velocity, &Player)>,
+    mut player_query: Query<(&mut Velocity, &mut Player)>,
+    mut screen_shake: ResMut<ScreenShake>,
 ) {
-    if let Ok((mut velocity, player)) = player_query.get_single_mut() {
-        if input.just_pressed(KeyCode::ControlLeft) && !player.grounded {
+    if let Ok((mut velocity, mut player)) = player_query.get_single_mut() {
+        let was_slamming = player.slamming;
+
+        if (input.just_pressed(KeyCode::ControlLeft) && !player.grounded)
+            || (input.just_released(KeyCode::ControlLeft) && !player.grounded)
+            || (input.pressed(KeyCode::ControlLeft) && player.grounded)
+        {
+            player.slamming = true;
+        } else {
+            player.slamming = false;
+        }
+
+        if player.slamming && !player.grounded {
             velocity.linvel.y = PLAYER_GROUND_SLAM_FORCE;
+
+            if !was_slamming {
+                let screen_shake_clone = screen_shake.clone();
+                screen_shake.start_shake(
+                    MAX_YAW,
+                    MAX_ROLL,
+                    MAX_PITCH,
+                    MAX_OFFSET,
+                    screen_shake_clone.trauma + 10.,
+                    1.,
+                );
+            }
         }
     }
 }
