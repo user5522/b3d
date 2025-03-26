@@ -3,7 +3,9 @@ use bevy_rapier3d::prelude::*;
 
 use super::{components::*, *};
 use crate::camera::{
-    MAX_OFFSET, MAX_PITCH, MAX_ROLL, MAX_YAW, components::*, resources::ScreenShake,
+    MAX_OFFSET, MAX_PITCH, MAX_ROLL, MAX_YAW,
+    components::*,
+    resources::{CameraTilt, ScreenShake},
 };
 
 pub fn spawn_player(
@@ -112,6 +114,7 @@ pub fn player_jump(
 pub fn player_slide(
     mut player_query: Query<(&mut Player, &mut Transform, &mut Velocity)>,
     camera_query: Query<&Transform, (With<MainCamera>, Without<Player>)>,
+    mut tilt: ResMut<CameraTilt>,
     input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
 ) {
@@ -138,6 +141,14 @@ pub fn player_slide(
         } else {
             0.0
         };
+
+        if input.pressed(KeyCode::ArrowLeft) || input.pressed(KeyCode::KeyA) {
+            tilt.activate(Vec3::Z, 0.05);
+        } else if input.pressed(KeyCode::ArrowRight) || input.pressed(KeyCode::KeyD) {
+            tilt.activate(Vec3::Z, -0.05);
+        } else if tilt.is_active {
+            tilt.deactivate();
+        }
 
         let rotation = Quat::from_rotation_y(rotation_amount);
 

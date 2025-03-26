@@ -41,3 +41,32 @@ impl ScreenShake {
         self.duration = duration;
     }
 }
+
+#[derive(Resource)]
+pub struct CameraTilt {
+    pub direction: Vec3,
+    pub target_angle: f32,
+    pub is_active: bool,
+}
+
+impl Default for CameraTilt {
+    fn default() -> Self {
+        Self {
+            direction: Vec3::ZERO,
+            target_angle: 0.0,
+            is_active: false,
+        }
+    }
+}
+
+impl CameraTilt {
+    pub fn activate(&mut self, direction: Vec3, angle: f32) {
+        self.direction = direction.normalize();
+        self.target_angle = angle;
+        self.is_active = true;
+    }
+
+    pub fn deactivate(&mut self) {
+        self.is_active = false;
+    }
+}

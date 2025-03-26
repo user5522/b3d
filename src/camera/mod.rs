@@ -4,7 +4,7 @@ pub mod components;
 pub mod resources;
 mod systems;
 
-use resources::ScreenShake;
+use resources::*;
 use systems::*;
 
 pub const CAMERA_DECAY_RATE: f32 = 0.9;
@@ -20,7 +20,8 @@ pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ScreenShake>()
+            .init_resource::<CameraTilt>()
             .add_systems(Startup, setup_camera)
-            .add_systems(Update, (follow_player, screen_shake));
+            .add_systems(Update, (follow_player, screen_shake, camera_tilt));
     }
 }

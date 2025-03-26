@@ -3,7 +3,7 @@ use rand::Rng;
 
 use crate::player::components::Player;
 
-use super::{CAMERA_DECAY_RATE, TRAUMA_DECAY_SPEED, components::*, resources::ScreenShake};
+use super::{CAMERA_DECAY_RATE, TRAUMA_DECAY_SPEED, components::*, resources::*};
 
 pub fn setup_camera(mut commands: Commands, mut windows: Query<&mut Window>) {
     if let Ok(mut window) = windows.get_single_mut() {
@@ -20,6 +20,9 @@ pub fn setup_camera(mut commands: Commands, mut windows: Query<&mut Window>) {
             pitch: 0.0,
             yaw: 0.0,
             base_rotation: Quat::IDENTITY,
+            current_tilt_angle: 0.0,
+            target_tilt_angle: 0.0,
+            tilt_direction: Vec3::ZERO,
         },
     ));
 }
@@ -45,8 +48,12 @@ pub fn follow_player(
 
             player_transform.rotation = Quat::from_rotation_y(camera.yaw);
 
-            camera.base_rotation =
-                Quat::from_rotation_y(camera.yaw) * Quat::from_rotation_x(camera.pitch);
+            let tilt_rotation =
+                Quat::from_axis_angle(camera.tilt_direction, camera.current_tilt_angle);
+
+            camera.base_rotation = Quat::from_rotation_y(camera.yaw)
+                * Quat::from_rotation_x(camera.pitch)
+                * tilt_rotation;
         }
     }
 }
@@ -59,6 +66,7 @@ pub fn screen_shake(
     let mut rng = rand::rng();
     let shake = screen_shake.trauma * screen_shake.trauma;
 
+    // TODO: use perlin noise maybe
     let yaw = (screen_shake.max_yaw * shake).to_radians() * rng.random_range(-1.0..1.0);
     let roll = (screen_shake.max_roll * shake).to_radians() * rng.random_range(-1.0..1.0);
     let pitch = (screen_shake.max_pitch * shake).to_radians() * rng.random_range(-1.0..1.0);
@@ -82,4 +90,19 @@ pub fn screen_shake(
 
     screen_shake.trauma -= TRAUMA_DECAY_SPEED * time.delta_secs();
     screen_shake.trauma = screen_shake.trauma.clamp(0.0, 1.0);
+}
+
+pub fn camera_tilt(mut query: Query<&mut FpCamera>, tilt: Res<CameraTilt>) {
+    if let Ok(mut camera) = query.get_single_mut() {
+        if tilt.is_active {
+            camera.tilt_direction = tilt.direction;
+            camera.target_tilt_angle = tilt.target_angle;
+        } else {
+            camera.target_tilt_angle = 0.0;
+        }
+
+        camera.current_tilt_angle = camera
+            .current_tilt_angle
+            .lerp(camera.target_tilt_angle, 0.05);
+    }
 }
