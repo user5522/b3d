@@ -16,5 +16,5 @@ opt-level = 3
 bevy = { version = "0.15.3", features = ["default", "dynamic_linking"] }
 bevy-inspector-egui = "0.30.0"
 bevy_rapier3d = { version = "0.29.0", features = ["simd-stable"] }
-inline_tweak = "1.2.1"
+# inline_tweak = "1.2.1"
 rand = "0.9.0"
