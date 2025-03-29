@@ -5,6 +5,8 @@ mod systems;
 
 use systems::*;
 
+use crate::states::GameState;
+
 pub const PLAYER_MESH_RADIUS: f32 = 0.4;
 pub const PLAYER_MESH_LENGTH: f32 = 1.8;
 pub const PLAYER_MESH_COLOR: Color = Color::srgb(0.3, 0.9, 0.3);
@@ -33,7 +35,8 @@ impl Plugin for PlayerPlugin {
                 player_slide,
                 update_player_height,
                 player_ground_slam,
-            ),
+            )
+                .run_if(in_state(GameState::Running)),
         );
     }
 }

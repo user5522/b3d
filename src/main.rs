@@ -2,6 +2,7 @@ mod camera;
 mod food;
 mod grid;
 mod player;
+mod states;
 mod systems;
 
 use bevy::{prelude::*, window::WindowMode};
@@ -12,6 +13,7 @@ use camera::CameraPlugin;
 use food::FoodPlugin;
 use grid::GridPlugin;
 use player::PlayerPlugin;
+use states::*;
 use systems::*;
 
 fn main() {
@@ -31,7 +33,11 @@ fn main() {
             RapierPhysicsPlugin::<NoUserData>::default(),
             WorldInspectorPlugin::default(),
         ))
+        .init_state::<GameState>()
         .add_plugins((PlayerPlugin, CameraPlugin, GridPlugin, FoodPlugin))
-        .add_systems(Update, (toggle_fullscreen, toggle_cursor_lock))
+        .add_systems(
+            Update,
+            (toggle_fullscreen, toggle_cursor_lock, toggle_pause),
+        )
         .run();
 }

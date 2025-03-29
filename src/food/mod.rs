@@ -5,6 +5,8 @@ mod systems;
 
 use systems::*;
 
+use crate::states::GameState;
+
 pub const FOOD_COLOR: Color = Color::srgb(0.9, 0.3, 0.3);
 
 pub struct FoodPlugin;
@@ -25,6 +27,6 @@ impl Plugin for FoodPlugin {
                 )
             },
         )
-        .add_systems(Update, food_consumed);
+        .add_systems(Update, (food_consumed).run_if(in_state(GameState::Running)));
     }
 }

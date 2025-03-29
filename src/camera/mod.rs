@@ -7,6 +7,8 @@ mod systems;
 use resources::*;
 use systems::*;
 
+use crate::states::GameState;
+
 pub const CAMERA_DECAY_RATE: f32 = 0.9;
 pub const TRAUMA_DECAY_SPEED: f32 = 0.5;
 
@@ -22,6 +24,9 @@ impl Plugin for CameraPlugin {
         app.init_resource::<ScreenShake>()
             .init_resource::<CameraTilt>()
             .add_systems(Startup, setup_camera)
-            .add_systems(Update, (follow_player, screen_shake, camera_tilt));
+            .add_systems(
+                Update,
+                (follow_player, screen_shake, camera_tilt).run_if(in_state(GameState::Running)),
+            );
     }
 }

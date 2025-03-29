@@ -3,6 +3,8 @@ use bevy::{
     window::{CursorGrabMode, WindowMode},
 };
 
+use crate::states::GameState;
+
 pub fn toggle_fullscreen(
     mut windows: Query<&mut Window>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
@@ -30,6 +32,19 @@ pub fn toggle_cursor_lock(keys: Res<ButtonInput<KeyCode>>, mut windows: Query<&m
                     window.cursor_options.visible = false;
                 }
             }
+        }
+    }
+}
+
+pub fn toggle_pause(
+    mut next_state: ResMut<NextState<GameState>>,
+    state: Res<State<GameState>>,
+    keys: Res<ButtonInput<KeyCode>>,
+) {
+    if keys.just_pressed(KeyCode::Escape) {
+        match state.get() {
+            GameState::Running => next_state.set(GameState::Paused),
+            GameState::Paused => next_state.set(GameState::Running),
         }
     }
 }
