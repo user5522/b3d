@@ -121,7 +121,10 @@ pub fn player_slide(
     let (mut player, mut player_transform, mut velocity) = player_query.single_mut();
     let camera_transform = camera_query.single();
 
-    if input.pressed(KeyCode::ControlLeft) && player.grounded && !player.sliding && !player.slamming
+    if input.just_pressed(KeyCode::ControlLeft)
+        && player.grounded
+        && !player.sliding
+        && !player.slamming
     {
         player.sliding = true;
         player.slide_direction = Vec3::new(
@@ -222,10 +225,7 @@ pub fn player_ground_slam(
     if let Ok((mut velocity, mut player)) = player_query.get_single_mut() {
         let was_slamming = player.slamming;
 
-        if (input.just_pressed(KeyCode::ControlLeft) && !player.grounded)
-            || (input.just_released(KeyCode::ControlLeft) && !player.grounded)
-            || (input.pressed(KeyCode::ControlLeft) && player.grounded)
-        {
+        if input.just_pressed(KeyCode::ControlLeft) && !player.grounded {
             player.slamming = true;
         } else {
             player.slamming = false;
