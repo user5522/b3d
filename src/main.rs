@@ -2,6 +2,8 @@ mod camera;
 mod food;
 mod grid;
 mod player;
+
+mod components;
 mod states;
 mod systems;
 
@@ -13,6 +15,7 @@ use camera::CameraPlugin;
 use food::FoodPlugin;
 use grid::GridPlugin;
 use player::PlayerPlugin;
+
 use states::*;
 use systems::*;
 
@@ -39,5 +42,7 @@ fn main() {
             Update,
             (toggle_fullscreen, toggle_cursor_lock, toggle_pause),
         )
+        .add_systems(Update, pause_ui.run_if(in_state(GameState::Paused)))
+        .add_systems(OnExit(GameState::Paused), despawn_pause_ui)
         .run();
 }

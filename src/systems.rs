@@ -3,7 +3,7 @@ use bevy::{
     window::{CursorGrabMode, WindowMode},
 };
 
-use crate::states::GameState;
+use crate::{components::PauseUI, states::GameState};
 
 pub fn toggle_fullscreen(
     mut windows: Query<&mut Window>,
@@ -38,6 +38,7 @@ pub fn toggle_cursor_lock(keys: Res<ButtonInput<KeyCode>>, mut windows: Query<&m
 
 pub fn toggle_pause(
     mut next_state: ResMut<NextState<GameState>>,
+    mut time: ResMut<Time<Virtual>>,
     state: Res<State<GameState>>,
     keys: Res<ButtonInput<KeyCode>>,
 ) {
@@ -46,5 +47,57 @@ pub fn toggle_pause(
             GameState::Running => next_state.set(GameState::Paused),
             GameState::Paused => next_state.set(GameState::Running),
         }
+
+        if time.is_paused() {
+            time.unpause();
+        } else {
+            time.pause();
+        }
+    }
+}
+
+pub fn pause_ui(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    pause_ui_query: Query<Entity, With<PauseUI>>,
+) {
+    if pause_ui_query.is_empty() {
+        commands
+            .spawn((
+                Node {
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(100.0),
+                    ..default()
+                },
+                PauseUI,
+                PickingBehavior::IGNORE,
+            ))
+            .with_children(|parent| {
+                parent
+                    .spawn((Node {
+                        position_type: PositionType::Absolute,
+                        bottom: Val::Px(50.0),
+                        left: Val::Px(50.0),
+                        ..default()
+                    },))
+                    .with_children(|parent| {
+                        parent.spawn((
+                            Text::new("Paused"),
+                            TextFont {
+                                font: asset_server.load("fonts/OverusedGrotesk-Bold.ttf"),
+                                font_size: 75.,
+                                ..default()
+                            },
+                            TextColor(Color::WHITE),
+                            Label,
+                        ));
+                    });
+            });
+    }
+}
+
+pub fn despawn_pause_ui(mut commands: Commands, pause_ui_query: Query<Entity, With<PauseUI>>) {
+    for entity in pause_ui_query.iter() {
+        commands.entity(entity).despawn_recursive();
     }
 }
