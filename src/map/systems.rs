@@ -5,15 +5,11 @@ use bevy::{
 };
 use bevy_rapier3d::prelude::*;
 
-use super::*;
+use crate::map::components::Wall;
 
-pub fn setup_grid(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    let grid_mesh = spawn_grid(GRID_WIDTH, GRID_DEPTH, GRID_CELL_SIZE);
+use super::{components::Ground, *};
 
+pub fn setup_lighting(mut commands: Commands) {
     commands.spawn((
         DirectionalLight {
             illuminance: 10000.0,
@@ -22,6 +18,35 @@ pub fn setup_grid(
         },
         Transform::from_xyz(0.0, 10.0, 0.0).looking_at(Vec3::ZERO, Vec3::Z),
     ));
+}
+
+pub fn setup_wall(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let wall_mesh = meshes.add(Cuboid::new(WALL_WIDTH, WALL_HEIGHT, WALL_THICKNESS));
+
+    commands.spawn((
+        Mesh3d(wall_mesh.clone()),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: GRID_COLOR,
+            ..default()
+        })),
+        Transform::from_xyz(10.0, WALL_HEIGHT / 2.0, 10.0),
+        RigidBody::Fixed,
+        Sleeping::disabled(),
+        Collider::cuboid(WALL_WIDTH / 2.0, WALL_HEIGHT / 2.0, WALL_THICKNESS / 2.0),
+        Wall,
+    ));
+}
+
+pub fn setup_grid(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    let grid_mesh = spawn_grid(GRID_WIDTH, GRID_DEPTH, GRID_CELL_SIZE);
 
     commands.spawn((
         Mesh3d(meshes.add(grid_mesh)),
@@ -34,6 +59,7 @@ pub fn setup_grid(
         Transform::from_xyz(0.0, 0.0, 0.0),
         RigidBody::Fixed,
         Collider::halfspace(Vec3::Y).unwrap(),
+        Ground,
     ));
 }
 

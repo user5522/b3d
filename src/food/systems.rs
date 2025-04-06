@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use rand::prelude::*;
 
 use crate::{
-    grid::{GRID_CELL_SIZE, GRID_DEPTH, GRID_WIDTH},
+    map::{GRID_CELL_SIZE, GRID_DEPTH, GRID_WIDTH},
     player::components::Player,
 };
 

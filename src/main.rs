@@ -1,6 +1,6 @@
 mod camera;
 mod food;
-mod grid;
+mod map;
 mod player;
 
 mod components;
@@ -13,7 +13,7 @@ use bevy_rapier3d::prelude::*;
 
 use camera::CameraPlugin;
 use food::FoodPlugin;
-use grid::GridPlugin;
+use map::MapPlugin;
 use player::PlayerPlugin;
 
 use states::*;
@@ -37,7 +37,7 @@ fn main() {
             WorldInspectorPlugin::default(),
         ))
         .init_state::<GameState>()
-        .add_plugins((PlayerPlugin, CameraPlugin, GridPlugin, FoodPlugin))
+        .add_plugins((PlayerPlugin, CameraPlugin, MapPlugin, FoodPlugin))
         .add_systems(
             Update,
             (toggle_fullscreen, toggle_cursor_lock, toggle_pause),
