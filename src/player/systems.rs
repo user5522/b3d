@@ -48,12 +48,11 @@ pub fn spawn_player(
 }
 
 pub fn player_movement(
-    mut player: Query<(&mut Transform, &Player)>,
+    mut player: Query<(&mut Velocity, &Player)>,
     camera: Query<&Transform, (With<MainCamera>, Without<Player>)>,
     input: Res<ButtonInput<KeyCode>>,
-    time: Res<Time>,
 ) {
-    let (mut player_transform, player) = player.single_mut();
+    let (mut velocity, player) = player.single_mut();
     let camera_transform = camera.single();
 
     let camera_forward = camera_transform.forward().normalize();
@@ -85,9 +84,10 @@ pub fn player_movement(
         PLAYER_WALK_SPEED
     };
 
-    let direction = direction.normalize_or_zero() * speed;
+    let target_velocity_xz = direction.normalize_or_zero() * speed;
 
-    player_transform.translation += time.delta_secs() * 2.0 * direction;
+    velocity.linvel.x = target_velocity_xz.x;
+    velocity.linvel.z = target_velocity_xz.z;
 }
 
 pub fn player_jump(
