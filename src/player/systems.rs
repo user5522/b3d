@@ -248,3 +248,11 @@ pub fn player_ground_slam(
         }
     }
 }
+
+pub fn reset_tilt(player_query: Query<&Player>, mut tilt: ResMut<CameraTilt>) {
+    let player = player_query.single();
+
+    if !player.sliding {
+        tilt.deactivate();
+    }
+}
