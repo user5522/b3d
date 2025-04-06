@@ -2,10 +2,13 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use super::{components::*, *};
-use crate::camera::{
-    MAX_OFFSET, MAX_PITCH, MAX_ROLL, MAX_YAW,
-    components::*,
-    resources::{CameraTilt, ScreenShake},
+use crate::{
+    camera::{
+        MAX_OFFSET, MAX_PITCH, MAX_ROLL, MAX_YAW,
+        components::*,
+        resources::{CameraTilt, ScreenShake},
+    },
+    map::components::Ground,
 };
 
 pub fn spawn_player(
@@ -179,15 +182,30 @@ pub fn ground_check(
     mut collision_events: EventReader<CollisionEvent>,
     mut player_query: Query<&mut Player>,
     sensor_query: Query<Entity, With<GroundSensor>>,
+    ground_query: Query<Entity, With<Ground>>,
 ) {
+    let Ok(mut player) = player_query.get_single_mut() else {
+        return;
+    };
+
     for event in collision_events.read() {
         let (is_collision_start, e1, e2) = match event {
             CollisionEvent::Started(e1, e2, _) => (true, e1, e2),
             CollisionEvent::Stopped(e1, e2, _) => (false, e1, e2),
         };
 
-        if sensor_query.get(*e1).is_ok() || sensor_query.get(*e2).is_ok() {
-            if let Ok(mut player) = player_query.get_single_mut() {
+        let sensor_entity = if sensor_query.get(*e1).is_ok() {
+            Some(*e1)
+        } else if sensor_query.get(*e2).is_ok() {
+            Some(*e2)
+        } else {
+            None
+        };
+
+        if let Some(sensor_entity) = sensor_entity {
+            let other_entity = if sensor_entity == *e1 { *e2 } else { *e1 };
+
+            if ground_query.get(other_entity).is_ok() {
                 player.grounded = is_collision_start;
             }
         }
