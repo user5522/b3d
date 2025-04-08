@@ -1,6 +1,7 @@
 mod camera;
 mod food;
 mod map;
+mod physics;
 mod player;
 
 mod components;
@@ -34,6 +35,7 @@ fn main() {
         }))
         .add_plugins((
             RapierPhysicsPlugin::<NoUserData>::default(),
+            // RapierDebugRenderPlugin::default(),
             WorldInspectorPlugin::default(),
         ))
         .init_state::<GameState>()

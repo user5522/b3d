@@ -9,6 +9,7 @@ use crate::{
         resources::{CameraTilt, ScreenShake},
     },
     map::components::Ground,
+    physics::{PLAYER_FILTER, PLAYER_GROUP, WALL_GROUP},
 };
 
 pub fn spawn_player(
@@ -46,7 +47,11 @@ pub fn spawn_player(
             slide_direction: Vec3::ZERO,
             current_height: PLAYER_MESH_LENGTH,
             target_height: PLAYER_MESH_LENGTH,
+            on_wall_left: false,
+            on_wall_right: false,
+            wall_normal: None,
         },
+        CollisionGroups::new(PLAYER_GROUP, PLAYER_FILTER),
     ));
 }
 
@@ -91,6 +96,75 @@ pub fn player_movement(
 
     velocity.linvel.x = target_velocity_xz.x;
     velocity.linvel.z = target_velocity_xz.z;
+}
+
+pub fn wall_check(
+    mut player_query: Query<(Entity, &mut Player, &Transform, &Collider)>,
+    rapier_context: Query<(
+        &RapierQueryPipeline,
+        &RapierContextColliders,
+        &RapierRigidBodySet,
+    )>,
+) {
+    let Ok((player_entity, mut player, transform, collider)) = player_query.get_single_mut() else {
+        return;
+    };
+    let Ok((query_pipeline, context_colliders, rb_set)) = rapier_context.get_single() else {
+        return;
+    };
+
+    if player.grounded {
+        player.on_wall_left = false;
+        player.on_wall_right = false;
+        player.wall_normal = None;
+        return;
+    }
+
+    player.on_wall_left = false;
+    player.on_wall_right = false;
+    player.wall_normal = None;
+
+    let shape = collider;
+    let shape_pos = transform.translation;
+    let shape_rot = transform.rotation;
+
+    let options = ShapeCastOptions {
+        max_time_of_impact: WALL_CHECK_DISTANCE,
+        stop_at_penetration: false,
+        compute_impact_geometry_on_penetration: true,
+        target_distance: 0.0,
+    };
+
+    let check_wall = |direction: Vec3, on_wall: &mut bool| {
+        let filter = QueryFilter::new()
+            .exclude_collider(player_entity)
+            .groups(CollisionGroups::new(PLAYER_GROUP, WALL_GROUP));
+
+        if let Some((_hit_entity, hit)) = query_pipeline.cast_shape(
+            context_colliders,
+            rb_set,
+            shape_pos.into(),
+            shape_rot,
+            direction.into(),
+            shape,
+            options,
+            filter,
+        ) {
+            *on_wall = true;
+            return Some(hit.details.unwrap().normal1.into());
+        }
+        None
+    };
+
+    if let Some(normal) = check_wall(transform.right().into(), &mut player.on_wall_right) {
+        player.wall_normal = Some(normal);
+    }
+
+    if let Some(normal) = check_wall(transform.left().into(), &mut player.on_wall_left) {
+        if player.wall_normal.is_none() {
+            player.wall_normal = Some(normal);
+        }
+    }
 }
 
 pub fn player_jump(

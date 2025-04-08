@@ -18,9 +18,11 @@ pub const PLAYER_SLIDE_FORCE: f32 = 17.;
 pub const PLAYER_GROUND_SLAM_FORCE: f32 = -50.0;
 
 pub const AIR_FRICTION: f32 = 0.75;
-const GRAVITY_MULTIPLIER: f32 = 1.25;
-const MAX_FALL_SPEED: f32 = -20.0;
-const GRAVITY: f32 = 9.81;
+pub const GRAVITY_MULTIPLIER: f32 = 1.25;
+pub const MAX_FALL_SPEED: f32 = -20.0;
+pub const GRAVITY: f32 = 9.81;
+
+pub const WALL_CHECK_DISTANCE: f32 = 0.5;
 
 pub struct PlayerPlugin;
 
@@ -29,11 +31,12 @@ impl Plugin for PlayerPlugin {
         app.add_systems(Startup, spawn_player).add_systems(
             Update,
             (
-                player_movement,
                 ground_check,
+                wall_check,
+                player_movement,
                 player_jump,
-                player_slide,
                 update_player_height,
+                player_slide,
                 player_ground_slam,
                 reset_tilt,
             )

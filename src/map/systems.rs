@@ -5,7 +5,10 @@ use bevy::{
 };
 use bevy_rapier3d::prelude::*;
 
-use crate::map::components::Wall;
+use crate::{
+    map::components::Wall,
+    physics::{GROUND_FILTER, GROUND_GROUP, WALL_FILTER, WALL_GROUP}, // Import collision groups
+};
 
 use super::{components::Ground, *};
 
@@ -38,6 +41,7 @@ pub fn setup_wall(
         Sleeping::disabled(),
         Collider::cuboid(WALL_WIDTH / 2.0, WALL_HEIGHT / 2.0, WALL_THICKNESS / 2.0),
         Wall,
+        CollisionGroups::new(WALL_GROUP, WALL_FILTER),
     ));
 }
 
@@ -60,6 +64,7 @@ pub fn setup_grid(
         RigidBody::Fixed,
         Collider::halfspace(Vec3::Y).unwrap(),
         Ground,
+        CollisionGroups::new(GROUND_GROUP, GROUND_FILTER),
     ));
 }
 
