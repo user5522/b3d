@@ -18,3 +18,4 @@ bevy-inspector-egui = "0.30.0"
 bevy_rapier3d = { version = "0.29.0", features = ["simd-stable"] }
 inline_tweak = "1.2.1"
 rand = "0.9.0"
+bevy_egui = "0.33.0"

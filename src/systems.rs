@@ -2,8 +2,9 @@ use bevy::{
     prelude::*,
     window::{CursorGrabMode, WindowMode},
 };
+use bevy_egui::{EguiContexts, egui};
 
-use crate::{components::PauseUI, states::GameState};
+use crate::{components::PauseUI, resources::Sensitivity, states::GameState};
 
 pub fn toggle_fullscreen(
     mut windows: Query<&mut Window>,
@@ -57,43 +58,61 @@ pub fn toggle_pause(
 }
 
 pub fn pause_ui(
+    mut contexts: EguiContexts,
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
     pause_ui_query: Query<Entity, With<PauseUI>>,
+    mut sensitivity: ResMut<Sensitivity>,
 ) {
-    if pause_ui_query.is_empty() {
-        commands
-            .spawn((
-                Node {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(100.0),
-                    ..default()
-                },
-                PauseUI,
-                PickingBehavior::IGNORE,
-            ))
-            .with_children(|parent| {
-                parent
-                    .spawn((Node {
-                        position_type: PositionType::Absolute,
-                        bottom: Val::Px(50.0),
-                        left: Val::Px(50.0),
-                        ..default()
-                    },))
-                    .with_children(|parent| {
-                        parent.spawn((
-                            Text::new("Paused"),
-                            TextFont {
-                                font: asset_server.load("fonts/OverusedGrotesk-Bold.ttf"),
-                                font_size: 75.,
-                                ..default()
-                            },
-                            TextColor(Color::WHITE),
-                            Label,
-                        ));
-                    });
-            });
+    let ctx = contexts.ctx_mut();
+
+    egui::Window::new("Settings")
+        .anchor(egui::Align2::LEFT_CENTER, egui::Vec2::new(50., 0.))
+        .resizable(false)
+        .collapsible(false)
+        .show(ctx, |ui| {
+            ui.set_width(250.);
+
+            ui.add_space(10.);
+            ui.label("Mouse Sensitivity");
+            let slider = egui::Slider::new(&mut sensitivity.value, 0.001..=0.01).text("Value");
+            ui.add(slider);
+            ui.add_space(10.);
+        });
+
+    if !pause_ui_query.is_empty() {
+        return;
     }
+
+    commands
+        .spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                ..default()
+            },
+            PauseUI,
+            PickingBehavior::IGNORE,
+        ))
+        .with_children(|parent| {
+            parent
+                .spawn((Node {
+                    position_type: PositionType::Absolute,
+                    bottom: Val::Px(50.0),
+                    left: Val::Px(50.0),
+                    ..default()
+                },))
+                .with_children(|parent| {
+                    parent.spawn((
+                        Text::new("Paused"),
+                        TextFont {
+                            font_size: 75.,
+                            ..default()
+                        },
+                        TextColor(Color::WHITE),
+                        Label,
+                    ));
+                });
+        });
 }
 
 pub fn despawn_pause_ui(mut commands: Commands, pause_ui_query: Query<Entity, With<PauseUI>>) {

@@ -1,7 +1,7 @@
 use bevy::{input::mouse::MouseMotion, prelude::*, window::CursorGrabMode};
 use rand::Rng;
 
-use crate::player::components::Player;
+use crate::{player::components::Player, resources::Sensitivity};
 
 use super::{CAMERA_DECAY_RATE, TRAUMA_DECAY_SPEED, components::*, resources::*};
 
@@ -31,14 +31,13 @@ pub fn follow_player(
     mut camera: Query<(&mut Transform, &mut FpCamera), With<MainCamera>>,
     mut player: Query<(&mut Transform, &mut Player), Without<MainCamera>>,
     mut mouse_motion: EventReader<MouseMotion>,
+    sensitivity: Res<Sensitivity>,
 ) {
     if let Ok((mut camera_transform, mut camera)) = camera.get_single_mut() {
         if let Ok((mut player_transform, player)) = player.get_single_mut() {
-            let sensitivity = 0.005;
-
             for event in mouse_motion.read() {
-                camera.pitch -= event.delta.y * sensitivity;
-                camera.yaw -= event.delta.x * sensitivity;
+                camera.pitch -= event.delta.y * sensitivity.value;
+                camera.yaw -= event.delta.x * sensitivity.value;
             }
 
             camera.pitch = camera.pitch.clamp(-1.5, 1.5);

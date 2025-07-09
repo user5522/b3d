@@ -5,10 +5,12 @@ mod physics;
 mod player;
 
 mod components;
+mod resources;
 mod states;
 mod systems;
 
 use bevy::{prelude::*, window::WindowMode};
+use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier3d::prelude::*;
 
@@ -17,6 +19,7 @@ use food::FoodPlugin;
 use map::MapPlugin;
 use player::PlayerPlugin;
 
+use resources::*;
 use states::*;
 use systems::*;
 
@@ -34,11 +37,13 @@ fn main() {
             ..default()
         }))
         .add_plugins((
+            EguiPlugin,
             RapierPhysicsPlugin::<NoUserData>::default(),
             // RapierDebugRenderPlugin::default(),
             WorldInspectorPlugin::default(),
         ))
         .init_state::<GameState>()
+        .init_resource::<Sensitivity>()
         .add_plugins((PlayerPlugin, CameraPlugin, MapPlugin, FoodPlugin))
         .add_systems(
             Update,
