@@ -61,6 +61,11 @@ pub fn player_movement(
     input: Res<ButtonInput<KeyCode>>,
 ) {
     let (mut velocity, player) = player.single_mut();
+
+    if player.sliding {
+        return;
+    }
+
     let camera_transform = camera.single();
 
     let camera_forward = camera_transform.forward().normalize();
@@ -70,20 +75,18 @@ pub fn player_movement(
 
     let mut direction = Vec3::ZERO;
 
-    if !player.sliding {
-        if input.pressed(KeyCode::ArrowUp) || input.pressed(KeyCode::KeyW) {
-            direction += camera_forward_xz;
-        }
-        if input.pressed(KeyCode::ArrowDown) || input.pressed(KeyCode::KeyS) {
-            direction -= camera_forward_xz;
-        }
+    if input.pressed(KeyCode::ArrowUp) || input.pressed(KeyCode::KeyW) {
+        direction += camera_forward_xz;
+    }
+    if input.pressed(KeyCode::ArrowDown) || input.pressed(KeyCode::KeyS) {
+        direction -= camera_forward_xz;
+    }
 
-        if input.pressed(KeyCode::ArrowLeft) || input.pressed(KeyCode::KeyA) {
-            direction -= camera_right_xz;
-        }
-        if input.pressed(KeyCode::ArrowRight) || input.pressed(KeyCode::KeyD) {
-            direction += camera_right_xz;
-        }
+    if input.pressed(KeyCode::ArrowLeft) || input.pressed(KeyCode::KeyA) {
+        direction -= camera_right_xz;
+    }
+    if input.pressed(KeyCode::ArrowRight) || input.pressed(KeyCode::KeyD) {
+        direction += camera_right_xz;
     }
 
     let speed = if input.pressed(KeyCode::ShiftLeft) {
@@ -204,12 +207,9 @@ pub fn player_slide(
         && !player.slamming
     {
         player.sliding = true;
-        player.slide_direction = Vec3::new(
-            camera_transform.forward().x,
-            0.0,
-            camera_transform.forward().z,
-        )
-        .normalize_or_zero();
+        player.slide_direction = camera_transform.forward().as_vec3();
+        player.slide_direction.y = 0.0;
+        player.slide_direction = player.slide_direction.normalize_or_zero();
         player.target_height = PLAYER_MESH_LENGTH / 2.0;
     }
 
