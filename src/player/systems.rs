@@ -138,11 +138,11 @@ pub fn wall_check(
         target_distance: 0.0,
     };
 
-    let check_wall = |direction: Vec3, on_wall: &mut bool| {
-        let filter = QueryFilter::new()
-            .exclude_collider(player_entity)
-            .groups(CollisionGroups::new(PLAYER_GROUP, WALL_GROUP));
+    let filter = QueryFilter::new()
+        .exclude_collider(player_entity)
+        .groups(CollisionGroups::new(PLAYER_GROUP, WALL_GROUP));
 
+    let check_wall = |direction: Vec3, on_wall: &mut bool| {
         if let Some((_hit_entity, hit)) = query_pipeline.cast_shape(
             context_colliders,
             rb_set,
