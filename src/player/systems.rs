@@ -181,8 +181,10 @@ pub fn player_jump(
             velocity.linvel.y = PLAYER_JUMP_FORCE;
         }
 
-        if velocity.linvel.y < 0.0 && !player.grounded {
-            velocity.linvel.y -= GRAVITY * GRAVITY_MULTIPLIER * time.delta_secs();
+        if !player.grounded {
+            let gravity_mult = if velocity.linvel.y < 0.0 { 0.8 } else { 1.4 };
+
+            velocity.linvel.y -= GRAVITY * gravity_mult * time.delta_secs();
         }
 
         if velocity.linvel.y < MAX_FALL_SPEED {
@@ -243,12 +245,12 @@ pub fn player_slide(
         player_transform.rotation = player_transform
             .rotation
             .slerp(target_rotation, time.delta_secs() * 10.0);
-    }
 
-    if (input.just_released(KeyCode::ControlLeft) || !player.grounded) && player.sliding {
-        player.sliding = false;
-        player.target_height = PLAYER_MESH_LENGTH;
-        velocity.linvel = Vec3::ZERO;
+        if input.just_released(KeyCode::ControlLeft) || !player.grounded {
+            player.sliding = false;
+            player.target_height = PLAYER_MESH_LENGTH;
+            velocity.linvel = Vec3::ZERO;
+        }
     }
 }
 

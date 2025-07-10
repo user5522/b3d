@@ -13,12 +13,11 @@ pub const PLAYER_MESH_COLOR: Color = Color::srgb(0.3, 0.9, 0.3);
 
 pub const PLAYER_WALK_SPEED: f32 = 10.;
 pub const PLAYER_SPRINT_SPEED: f32 = 15.;
-pub const PLAYER_JUMP_FORCE: f32 = 5.;
+pub const PLAYER_JUMP_FORCE: f32 = 8.5;
 pub const PLAYER_SLIDE_FORCE: f32 = 17.;
 pub const PLAYER_GROUND_SLAM_FORCE: f32 = -50.0;
 
 pub const AIR_FRICTION: f32 = 0.75;
-pub const GRAVITY_MULTIPLIER: f32 = 1.25;
 pub const MAX_FALL_SPEED: f32 = -20.0;
 pub const GRAVITY: f32 = 9.81;
 
