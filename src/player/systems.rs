@@ -89,13 +89,7 @@ pub fn player_movement(
         direction += camera_right_xz;
     }
 
-    let speed = if input.pressed(KeyCode::ShiftLeft) {
-        PLAYER_SPRINT_SPEED
-    } else {
-        PLAYER_WALK_SPEED
-    };
-
-    let target_velocity_xz = direction.normalize_or_zero() * speed;
+    let target_velocity_xz = direction.normalize_or_zero() * PLAYER_MOVE_SPEED;
 
     velocity.linvel.x = target_velocity_xz.x;
     velocity.linvel.z = target_velocity_xz.z;
