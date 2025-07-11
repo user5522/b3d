@@ -8,7 +8,7 @@ use systems::*;
 use crate::states::GameState;
 
 pub const PLAYER_MESH_RADIUS: f32 = 0.4;
-pub const PLAYER_MESH_LENGTH: f32 = 1.8;
+pub const PLAYER_MESH_HEIGHT: f32 = 1.8;
 pub const PLAYER_MESH_COLOR: Color = Color::srgb(0.3, 0.9, 0.3);
 
 pub const PLAYER_MOVE_SPEED: f32 = 17.;

@@ -17,22 +17,22 @@ pub fn spawn_player(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let player_mesh = meshes.add(Capsule3d::new(PLAYER_MESH_RADIUS, PLAYER_MESH_LENGTH));
+    let player_mesh = meshes.add(Capsule3d::new(PLAYER_MESH_RADIUS, PLAYER_MESH_HEIGHT));
     let player_material = materials.add(StandardMaterial {
         base_color: PLAYER_MESH_COLOR,
         ..default()
     });
 
     commands.spawn((
-        Transform::from_xyz(0.0, PLAYER_MESH_LENGTH / 2.0, 0.0),
+        Transform::from_xyz(0.0, PLAYER_MESH_HEIGHT / 2.0, 0.0),
         GlobalTransform::default(),
         Mesh3d(player_mesh),
         MeshMaterial3d(player_material),
         RigidBody::Dynamic,
         GroundSensor,
         Collider::capsule(
-            Vec3::Y * PLAYER_MESH_LENGTH / 2.0,
-            Vec3::NEG_Y * PLAYER_MESH_LENGTH / 2.0,
+            Vec3::Y * PLAYER_MESH_HEIGHT / 2.0,
+            Vec3::NEG_Y * PLAYER_MESH_HEIGHT / 2.0,
             PLAYER_MESH_RADIUS,
         ),
         ActiveEvents::COLLISION_EVENTS,
@@ -45,8 +45,8 @@ pub fn spawn_player(
             sliding: false,
             slamming: false,
             slide_direction: Vec3::ZERO,
-            current_height: PLAYER_MESH_LENGTH,
-            target_height: PLAYER_MESH_LENGTH,
+            current_height: PLAYER_MESH_HEIGHT,
+            target_height: PLAYER_MESH_HEIGHT,
             on_wall_left: false,
             on_wall_right: false,
             wall_normal: None,
@@ -206,7 +206,7 @@ pub fn player_slide(
         player.slide_direction = camera_transform.forward().as_vec3();
         player.slide_direction.y = 0.0;
         player.slide_direction = player.slide_direction.normalize_or_zero();
-        player.target_height = PLAYER_MESH_LENGTH / 2.0;
+        player.target_height = PLAYER_MESH_HEIGHT / 2.0;
     }
 
     if player.sliding {
@@ -242,7 +242,7 @@ pub fn player_slide(
 
         if input.just_released(KeyCode::ControlLeft) || !player.grounded {
             player.sliding = false;
-            player.target_height = PLAYER_MESH_LENGTH;
+            player.target_height = PLAYER_MESH_HEIGHT;
             velocity.linvel = Vec3::ZERO;
         }
     }
