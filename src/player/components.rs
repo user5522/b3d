@@ -12,6 +12,3 @@ pub struct Player {
     pub on_wall_right: bool,
     pub wall_normal: Option<Vec3>,
 }
-
-#[derive(Component)]
-pub struct GroundSensor;

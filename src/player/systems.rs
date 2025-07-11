@@ -8,8 +8,7 @@ use crate::{
         components::*,
         resources::{CameraTilt, ScreenShake},
     },
-    map::components::Ground,
-    physics::{PLAYER_FILTER, PLAYER_GROUP, WALL_GROUP},
+    physics::{GROUND_GROUP, PLAYER_FILTER, PLAYER_GROUP, WALL_GROUP},
 };
 
 pub fn spawn_player(
@@ -29,7 +28,6 @@ pub fn spawn_player(
         Mesh3d(player_mesh),
         MeshMaterial3d(player_material),
         RigidBody::Dynamic,
-        GroundSensor,
         Collider::capsule(
             Vec3::Y * PLAYER_MESH_HEIGHT / 2.0,
             Vec3::NEG_Y * PLAYER_MESH_HEIGHT / 2.0,
@@ -249,37 +247,39 @@ pub fn player_slide(
 }
 
 pub fn ground_check(
-    mut collision_events: EventReader<CollisionEvent>,
-    mut player_query: Query<&mut Player>,
-    sensor_query: Query<Entity, With<GroundSensor>>,
-    ground_query: Query<Entity, With<Ground>>,
+    mut player_query: Query<(Entity, &mut Player, &GlobalTransform)>,
+    rapier_context: Query<(
+        &RapierQueryPipeline,
+        &RapierContextColliders,
+        &RapierRigidBodySet,
+    )>,
 ) {
-    let Ok(mut player) = player_query.get_single_mut() else {
+    let Ok((player_entity, mut player, transform)) = player_query.get_single_mut() else {
+        return;
+    };
+    let Ok((query_pipeline, context_colliders, rb_set)) = rapier_context.get_single() else {
         return;
     };
 
-    for event in collision_events.read() {
-        let (is_collision_start, e1, e2) = match event {
-            CollisionEvent::Started(e1, e2, _) => (true, e1, e2),
-            CollisionEvent::Stopped(e1, e2, _) => (false, e1, e2),
-        };
+    let ray_start = transform.translation();
+    let ray_dir = Vec3::NEG_Y;
+    let max_distance = PLAYER_MESH_HEIGHT;
 
-        let sensor_entity = if sensor_query.get(*e1).is_ok() {
-            Some(*e1)
-        } else if sensor_query.get(*e2).is_ok() {
-            Some(*e2)
-        } else {
-            None
-        };
+    let filter = QueryFilter::new()
+        .exclude_collider(player_entity)
+        .groups(CollisionGroups::new(PLAYER_GROUP, GROUND_GROUP));
 
-        if let Some(sensor_entity) = sensor_entity {
-            let other_entity = if sensor_entity == *e1 { *e2 } else { *e1 };
-
-            if ground_query.get(other_entity).is_ok() {
-                player.grounded = is_collision_start;
-            }
-        }
-    }
+    player.grounded = query_pipeline
+        .cast_ray(
+            context_colliders,
+            rb_set,
+            ray_start.into(),
+            ray_dir.into(),
+            max_distance,
+            true,
+            filter,
+        )
+        .is_some();
 }
 
 pub fn update_player_height(
