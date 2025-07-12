@@ -36,7 +36,6 @@ impl Plugin for PlayerPlugin {
                 update_player_height,
                 player_slide,
                 player_ground_slam,
-                reset_tilt,
             )
                 .run_if(in_state(GameState::Running)),
         );
