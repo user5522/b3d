@@ -7,7 +7,7 @@ use bevy_rapier3d::prelude::*;
 
 use crate::{
     map::components::Wall,
-    physics::{GROUND_FILTER, GROUND_GROUP, WALL_FILTER, WALL_GROUP}, // Import collision groups
+    physics::{GROUND_FILTER, GROUND_GROUP, WALL_FILTER, WALL_GROUP},
 };
 
 use super::{components::Ground, *};
@@ -63,6 +63,21 @@ pub fn setup_grid(
         Transform::from_xyz(0.0, 0.0, 0.0),
         RigidBody::Fixed,
         Collider::halfspace(Vec3::Y).unwrap(),
+        Ground,
+        CollisionGroups::new(GROUND_GROUP, GROUND_FILTER),
+    ));
+
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::new(WALL_WIDTH / 2.0, WALL_HEIGHT, WALL_THICKNESS))),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: GRID_COLOR,
+            ..default()
+        })),
+        Transform::from_xyz(-20.0, WALL_HEIGHT / 2.0, -20.0)
+            .with_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_4)),
+        RigidBody::Fixed,
+        Sleeping::disabled(),
+        Collider::cuboid(WALL_WIDTH / 4.0, WALL_HEIGHT / 2.0, WALL_THICKNESS / 2.0),
         Ground,
         CollisionGroups::new(GROUND_GROUP, GROUND_FILTER),
     ));
