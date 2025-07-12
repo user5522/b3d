@@ -73,7 +73,7 @@ pub fn setup_grid(
             base_color: GRID_COLOR,
             ..default()
         })),
-        Transform::from_xyz(-20.0, WALL_HEIGHT / 2.0, -20.0)
+        Transform::from_xyz(-20.0, (WALL_HEIGHT - 3.5) / 2.0, -20.0)
             .with_rotation(Quat::from_rotation_x(-std::f32::consts::FRAC_PI_4)),
         RigidBody::Fixed,
         Sleeping::disabled(),
