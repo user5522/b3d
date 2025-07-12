@@ -267,7 +267,7 @@ pub fn ground_check(
 
     let ray_start = transform.translation();
     let ray_dir = Vec3::NEG_Y;
-    let max_distance = PLAYER_MESH_HEIGHT;
+    let max_distance = PLAYER_MESH_HEIGHT / 2.0 + GROUND_CHECK_DISTANCE;
 
     let filter = QueryFilter::new()
         .exclude_collider(player_entity)

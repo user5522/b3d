@@ -21,6 +21,7 @@ pub const MAX_FALL_SPEED: f32 = -20.0;
 pub const GRAVITY: f32 = 9.81;
 
 pub const WALL_CHECK_DISTANCE: f32 = 0.5;
+pub const GROUND_CHECK_DISTANCE: f32 = 0.5;
 
 pub struct PlayerPlugin;
 
